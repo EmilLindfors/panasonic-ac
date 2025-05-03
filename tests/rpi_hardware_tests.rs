@@ -8,6 +8,7 @@ use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 
 use panasonic_ac::error::{Error, Result};
+#[cfg(feature = "rpi")]
 use panasonic_ac::hardware::{IrReceiver, IrTransmitter};
 
 #[cfg(feature = "rpi")]
