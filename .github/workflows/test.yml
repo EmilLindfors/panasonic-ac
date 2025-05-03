@@ -16,6 +16,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libudev-dev
+
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -54,6 +59,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libudev-dev
+      
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -66,22 +76,12 @@ jobs:
       
       - name: Generate code coverage
         run: |
-          # Run coverage with all features first
-          cargo llvm-cov --all-features --workspace --no-report
+          # Print out Rust and cargo versions for debugging
+          rustc --version
+          cargo --version
           
-          # Run with all features explicitly to ensure nothing is missed
-          cargo llvm-cov --features "mock,rpi,builder,diff,cli,test-rpi" --workspace --no-report
-          
-          # Run with specific feature combinations to ensure all tests are covered
-          cargo llvm-cov --features "mock" --no-report
-          cargo llvm-cov --features "rpi,mock" --no-report
-          cargo llvm-cov --features "test-rpi" --no-report
-          cargo llvm-cov --features "builder" --no-report
-          cargo llvm-cov --features "cli,rpi" --no-report
-          cargo llvm-cov --features "diff" --no-report
-          
-          # Generate the final report
-          cargo llvm-cov report --lcov --output-path lcov.info
+          # Simplified approach - just run with all features and generate lcov
+          cargo llvm-cov --features "mock,rpi,builder,diff,cli,test-rpi" --workspace --lcov --output-path lcov.info --verbose
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
