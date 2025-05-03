@@ -35,20 +35,34 @@ VERSION=$(echo "$REDIRECT_URL" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' || echo "v0.
 
 echo "Latest version: $VERSION"
 
+# Determine architecture
+ARCH=$(uname -m)
+echo "Detected architecture: $ARCH"
+
+if [[ "$ARCH" == "aarch64" ]]; then
+    # 64-bit ARM (Raspberry Pi 3/4 with 64-bit OS)
+    BINARY_FILE="panasonic-rpi-aarch64.tar.gz"
+else
+    # 32-bit ARM (older Raspberry Pi or 32-bit OS)
+    BINARY_FILE="panasonic-rpi-armv7.tar.gz"
+fi
+
 # Download binary
-BINARY_URL="https://github.com/EmilLindfors/panasonic-ac/releases/download/$VERSION/panasonic-rpi-armv7.tar.gz"
-echo "Downloading binary from $BINARY_URL..."
-wget -q "$BINARY_URL" -O panasonic-rpi-armv7.tar.gz
+BINARY_URL="https://github.com/EmilLindfors/panasonic-ac/releases/download/$VERSION/$BINARY_FILE"
+echo "Downloading binary for $ARCH from $BINARY_URL..."
+wget -q "$BINARY_URL" -O "$BINARY_FILE"
 
 # Extract binary
 echo "Extracting binary..."
-tar -xzf panasonic-rpi-armv7.tar.gz
+tar -xzf "$BINARY_FILE"
 
 # Find the binary - handle different archive structures
 echo "Locating binary..."
-if [ -f panasonic-rpi-armv7/panasonic-rpi ]; then
-    BINARY_PATH="panasonic-rpi-armv7/panasonic-rpi"
-elif [ -f panasonic-rpi ]; then
+DIRNAME="${BINARY_FILE%.tar.gz}"
+
+if [ -f "$DIRNAME/panasonic-rpi" ]; then
+    BINARY_PATH="$DIRNAME/panasonic-rpi"
+elif [ -f "panasonic-rpi" ]; then
     BINARY_PATH="panasonic-rpi"
 else
     # Search for the binary

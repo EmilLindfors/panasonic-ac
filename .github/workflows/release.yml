@@ -133,10 +133,76 @@ jobs:
         path: target/armv7-unknown-linux-gnueabihf/release/examples/raspberry_pi*
         if-no-files-found: warn
 
+  # Build for Raspberry Pi (AArch64 - 64-bit)
+  build_aarch64:
+    name: Build for Raspberry Pi (AArch64)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: aarch64-unknown-linux-gnu
+        profile: minimal
+        override: true
+    
+    - name: Install ARM64 toolchain and system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu libudev-dev
+    
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: aarch64-cargo-
+    
+    - name: Build library for Raspberry Pi (AArch64)
+      run: cargo build --target aarch64-unknown-linux-gnu --features rpi --release
+    
+    - name: Build Raspberry Pi example (AArch64)
+      run: cargo build --example raspberry_pi --target aarch64-unknown-linux-gnu --features rpi --release
+    
+    - name: Build CLI binary for Raspberry Pi (AArch64)
+      run: cargo build --bin panasonic-rpi --target aarch64-unknown-linux-gnu --features rpi,cli --release
+      
+    - name: List ARM64 target directory contents
+      run: |
+        echo "=== Listing target/aarch64-unknown-linux-gnu/release directory ==="
+        find target/aarch64-unknown-linux-gnu/release -type f | sort
+        echo "=========================================================="
+    
+    - name: Upload library artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: panasonic-ac-lib-aarch64
+        path: target/aarch64-unknown-linux-gnu/release/libpanasonic_ac*.so
+        if-no-files-found: warn
+    
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: panasonic-rpi-aarch64
+        path: target/aarch64-unknown-linux-gnu/release/panasonic-rpi*
+        if-no-files-found: warn
+    
+    - name: Upload example
+      uses: actions/upload-artifact@v4
+      with:
+        name: raspberry-pi-example-aarch64
+        path: target/aarch64-unknown-linux-gnu/release/examples/raspberry_pi*
+        if-no-files-found: warn
+
   # Create GitHub Release with all artifacts
   create_release:
     name: Create Release
-    needs: [build_lib, build_armv7]
+    needs: [build_lib, build_armv7, build_aarch64]
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
@@ -162,6 +228,9 @@ jobs:
           package_if_exists "panasonic-ac-lib-armv7" "panasonic-ac-lib-armv7"
           package_if_exists "panasonic-rpi-armv7" "panasonic-rpi-armv7"
           package_if_exists "raspberry-pi-example-armv7" "raspberry-pi-example-armv7"
+          package_if_exists "panasonic-ac-lib-aarch64" "panasonic-ac-lib-aarch64"
+          package_if_exists "panasonic-rpi-aarch64" "panasonic-rpi-aarch64"
+          package_if_exists "raspberry-pi-example-aarch64" "raspberry-pi-example-aarch64"
           
           # List what we've created
           ls -la release/
