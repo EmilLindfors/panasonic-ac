@@ -40,7 +40,7 @@ jobs:
       run: cargo test --tests mock_hardware_tests --verbose
     
     - name: Run Raspberry Pi tests
-      run: cargo test --tests rpi_hardware_tests rpi_integration_test --features test-rpi --verbose
+      run: cargo test --tests rpi_hardware_tests rpi_integration_tests --features test-rpi --verbose
     
     - name: Run CLI tests
       run: cargo test --tests cli_tests --features "test-rpi cli" --verbose
