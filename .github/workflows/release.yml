@@ -85,7 +85,7 @@ jobs:
     - name: Install ARM toolchain and system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-arm-linux-gnueabihf libudev-dev
+        sudo apt-get install -y gcc-arm-linux-gnueabihf libudev-dev pkg-config libssl-dev libudev-dev:armhf
     
     - name: Cache dependencies
       uses: actions/cache@v4
@@ -97,14 +97,31 @@ jobs:
         key: armv7-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: armv7-cargo-
     
+    - name: Create .cargo/config.toml for cross-compilation
+      run: |
+        mkdir -p .cargo
+        cat > .cargo/config.toml << EOF
+        [target.armv7-unknown-linux-gnueabihf]
+        linker = "arm-linux-gnueabihf-gcc"
+        EOF
+        
     - name: Build library for Raspberry Pi
-      run: cargo build --target armv7-unknown-linux-gnueabihf --features rpi --release
+      run: |
+        export PKG_CONFIG_ALLOW_CROSS=1
+        export CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc
+        cargo build --target armv7-unknown-linux-gnueabihf --features rpi --release
     
     - name: Build Raspberry Pi example
-      run: cargo build --example raspberry_pi --target armv7-unknown-linux-gnueabihf --features rpi --release
+      run: |
+        export PKG_CONFIG_ALLOW_CROSS=1
+        export CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc
+        cargo build --example raspberry_pi --target armv7-unknown-linux-gnueabihf --features rpi --release
     
     - name: Build CLI binary for Raspberry Pi
-      run: cargo build --bin panasonic-rpi --target armv7-unknown-linux-gnueabihf --features rpi,cli --release
+      run: |
+        export PKG_CONFIG_ALLOW_CROSS=1
+        export CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER=arm-linux-gnueabihf-gcc
+        cargo build --bin panasonic-rpi --target armv7-unknown-linux-gnueabihf --features rpi,cli --release
       
     - name: List ARM target directory contents
       run: |
@@ -151,7 +168,7 @@ jobs:
     - name: Install ARM64 toolchain and system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu libudev-dev
+        sudo apt-get install -y gcc-aarch64-linux-gnu libudev-dev pkg-config libssl-dev libudev-dev:arm64
     
     - name: Cache dependencies
       uses: actions/cache@v4
@@ -163,14 +180,31 @@ jobs:
         key: aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
         restore-keys: aarch64-cargo-
     
+    - name: Create .cargo/config.toml for cross-compilation
+      run: |
+        mkdir -p .cargo
+        cat > .cargo/config.toml << EOF
+        [target.aarch64-unknown-linux-gnu]
+        linker = "aarch64-linux-gnu-gcc"
+        EOF
+        
     - name: Build library for Raspberry Pi (AArch64)
-      run: cargo build --target aarch64-unknown-linux-gnu --features rpi --release
+      run: |
+        export PKG_CONFIG_ALLOW_CROSS=1
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+        cargo build --target aarch64-unknown-linux-gnu --features rpi --release
     
     - name: Build Raspberry Pi example (AArch64)
-      run: cargo build --example raspberry_pi --target aarch64-unknown-linux-gnu --features rpi --release
+      run: |
+        export PKG_CONFIG_ALLOW_CROSS=1
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+        cargo build --example raspberry_pi --target aarch64-unknown-linux-gnu --features rpi --release
     
     - name: Build CLI binary for Raspberry Pi (AArch64)
-      run: cargo build --bin panasonic-rpi --target aarch64-unknown-linux-gnu --features rpi,cli --release
+      run: |
+        export PKG_CONFIG_ALLOW_CROSS=1
+        export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+        cargo build --bin panasonic-rpi --target aarch64-unknown-linux-gnu --features rpi,cli --release
       
     - name: List ARM64 target directory contents
       run: |
