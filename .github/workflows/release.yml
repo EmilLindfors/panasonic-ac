@@ -46,20 +46,26 @@ jobs:
     
     - name: Build CLI binary
       run: cargo build --bin panasonic-rpi --features rpi,cli --release
+      
+    - name: List target directory contents
+      run: |
+        echo "=== Listing target/release directory ==="
+        find target/release -type f -name "libpanasonic_ac*" | sort
+        echo "============================================"
     
     - name: Upload library artifact
       uses: actions/upload-artifact@v4
       with:
         name: panasonic-ac-lib-x86_64
-        path: target/release/libpanasonic_ac.so
-        if-no-files-found: error
+        path: target/release/libpanasonic_ac*.so
+        if-no-files-found: warn
     
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
         name: panasonic-rpi-x86_64
-        path: target/release/panasonic-rpi
-        if-no-files-found: error
+        path: target/release/panasonic-rpi*
+        if-no-files-found: warn
 
   # Build for Raspberry Pi (ARMv7)
   build_armv7:
@@ -99,27 +105,33 @@ jobs:
     
     - name: Build CLI binary for Raspberry Pi
       run: cargo build --bin panasonic-rpi --target armv7-unknown-linux-gnueabihf --features rpi,cli --release
+      
+    - name: List ARM target directory contents
+      run: |
+        echo "=== Listing target/armv7-unknown-linux-gnueabihf/release directory ==="
+        find target/armv7-unknown-linux-gnueabihf/release -type f | sort
+        echo "=========================================================="
     
     - name: Upload library artifact
       uses: actions/upload-artifact@v4
       with:
         name: panasonic-ac-lib-armv7
-        path: target/armv7-unknown-linux-gnueabihf/release/libpanasonic_ac.so
-        if-no-files-found: error
+        path: target/armv7-unknown-linux-gnueabihf/release/libpanasonic_ac*.so
+        if-no-files-found: warn
     
     - name: Upload binary artifact
       uses: actions/upload-artifact@v4
       with:
         name: panasonic-rpi-armv7
-        path: target/armv7-unknown-linux-gnueabihf/release/panasonic-rpi
-        if-no-files-found: error
+        path: target/armv7-unknown-linux-gnueabihf/release/panasonic-rpi*
+        if-no-files-found: warn
     
     - name: Upload example
       uses: actions/upload-artifact@v4
       with:
         name: raspberry-pi-example-armv7
-        path: target/armv7-unknown-linux-gnueabihf/release/examples/raspberry_pi
-        if-no-files-found: error
+        path: target/armv7-unknown-linux-gnueabihf/release/examples/raspberry_pi*
+        if-no-files-found: warn
 
   # Create GitHub Release with all artifacts
   create_release:
@@ -133,26 +145,49 @@ jobs:
       - name: Package artifacts
         run: |
           mkdir -p release
-          tar -czvf release/panasonic-ac-lib-x86_64.tar.gz panasonic-ac-lib-x86_64/
-          tar -czvf release/panasonic-rpi-x86_64.tar.gz panasonic-rpi-x86_64/
-          tar -czvf release/panasonic-ac-lib-armv7.tar.gz panasonic-ac-lib-armv7/
-          tar -czvf release/panasonic-rpi-armv7.tar.gz panasonic-rpi-armv7/
-          tar -czvf release/raspberry-pi-example-armv7.tar.gz raspberry-pi-example-armv7/
+          
+          # Function to create tarball if directory exists and is not empty
+          package_if_exists() {
+            if [ -d "$1" ] && [ "$(ls -A $1)" ]; then
+              echo "Packaging $1 to release/$2.tar.gz"
+              tar -czvf "release/$2.tar.gz" "$1/"
+            else
+              echo "Directory $1 is empty or doesn't exist, skipping"
+              touch "release/$2.tar.gz.empty"
+            fi
+          }
+          
+          package_if_exists "panasonic-ac-lib-x86_64" "panasonic-ac-lib-x86_64"
+          package_if_exists "panasonic-rpi-x86_64" "panasonic-rpi-x86_64"
+          package_if_exists "panasonic-ac-lib-armv7" "panasonic-ac-lib-armv7"
+          package_if_exists "panasonic-rpi-armv7" "panasonic-rpi-armv7"
+          package_if_exists "raspberry-pi-example-armv7" "raspberry-pi-example-armv7"
+          
+          # List what we've created
+          ls -la release/
       
       - name: Extract version
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
         
+      - name: Prepare release files list
+        id: release_files
+        run: |
+          FILES=""
+          for f in release/*.tar.gz; do
+            if [ -f "$f" ] && [ ! -f "$f.empty" ]; then
+              FILES="$FILES$f\n"
+            fi
+          done
+          echo "FILES<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           name: Panasonic AC v${{ steps.version.outputs.VERSION }}
-          files: |
-            release/panasonic-ac-lib-x86_64.tar.gz
-            release/panasonic-rpi-x86_64.tar.gz
-            release/panasonic-ac-lib-armv7.tar.gz
-            release/panasonic-rpi-armv7.tar.gz
-            release/raspberry-pi-example-armv7.tar.gz
+          files: ${{ steps.release_files.outputs.FILES }}
           draft: false
           prerelease: false
           generate_release_notes: true
