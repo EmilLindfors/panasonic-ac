@@ -43,7 +43,7 @@ mod cli_tests {
             "auto" => Ok(FanSpeed::Auto),
             "min" | "lowest" => Ok(FanSpeed::Min),
             "low" => Ok(FanSpeed::Low),
-            "med" | "medium" => Ok(FanSpeed::Med),
+            "med" | "medium" => Ok(FanSpeed::Medium),
             "high" => Ok(FanSpeed::High),
             "max" | "highest" => Ok(FanSpeed::Max),
             _ => Err(panasonic_ac::error::Error::InvalidValue(
@@ -72,9 +72,9 @@ mod cli_tests {
         match swing_str.to_lowercase().as_str() {
             "auto" => Ok(SwingH::Auto),
             "left" => Ok(SwingH::Left),
-            "left_mid" => Ok(SwingH::LeftMid),
+            "left_mid" => Ok(SwingH::Left),
             "middle" => Ok(SwingH::Middle),
-            "right_mid" => Ok(SwingH::RightMid),
+            "right_mid" => Ok(SwingH::Right),
             "right" => Ok(SwingH::Right),
             _ => Err(panasonic_ac::error::Error::InvalidValue(
                 format!("Invalid horizontal swing: {}", swing_str)
@@ -104,8 +104,8 @@ mod cli_tests {
         assert_eq!(parse_fan_speed("min").unwrap(), FanSpeed::Min);
         assert_eq!(parse_fan_speed("lowest").unwrap(), FanSpeed::Min);
         assert_eq!(parse_fan_speed("low").unwrap(), FanSpeed::Low);
-        assert_eq!(parse_fan_speed("med").unwrap(), FanSpeed::Med);
-        assert_eq!(parse_fan_speed("medium").unwrap(), FanSpeed::Med);
+        assert_eq!(parse_fan_speed("med").unwrap(), FanSpeed::Medium);
+        assert_eq!(parse_fan_speed("medium").unwrap(), FanSpeed::Medium);
         assert_eq!(parse_fan_speed("high").unwrap(), FanSpeed::High);
         assert_eq!(parse_fan_speed("max").unwrap(), FanSpeed::Max);
         assert_eq!(parse_fan_speed("highest").unwrap(), FanSpeed::Max);
@@ -131,9 +131,9 @@ mod cli_tests {
     fn test_parse_swing_h() {
         assert_eq!(parse_swing_h("auto").unwrap(), SwingH::Auto);
         assert_eq!(parse_swing_h("left").unwrap(), SwingH::Left);
-        assert_eq!(parse_swing_h("left_mid").unwrap(), SwingH::LeftMid);
+        assert_eq!(parse_swing_h("left_mid").unwrap(), SwingH::Left);
         assert_eq!(parse_swing_h("middle").unwrap(), SwingH::Middle);
-        assert_eq!(parse_swing_h("right_mid").unwrap(), SwingH::RightMid);
+        assert_eq!(parse_swing_h("right_mid").unwrap(), SwingH::Right);
         assert_eq!(parse_swing_h("right").unwrap(), SwingH::Right);
         
         // Test invalid swing settings
