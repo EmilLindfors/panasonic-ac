@@ -14,7 +14,12 @@ jobs:
     name: Build Library
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libudev-dev
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -24,7 +29,7 @@ jobs:
         override: true
     
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/registry
@@ -43,14 +48,14 @@ jobs:
       run: cargo build --bin panasonic-rpi --features rpi,cli --release
     
     - name: Upload library artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: panasonic-ac-lib-x86_64
         path: target/release/libpanasonic_ac.so
         if-no-files-found: error
     
     - name: Upload binary artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: panasonic-rpi-x86_64
         path: target/release/panasonic-rpi
@@ -61,7 +66,7 @@ jobs:
     name: Build for Raspberry Pi (ARMv7)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -71,13 +76,13 @@ jobs:
         profile: minimal
         override: true
     
-    - name: Install ARM toolchain
+    - name: Install ARM toolchain and system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-arm-linux-gnueabihf
+        sudo apt-get install -y gcc-arm-linux-gnueabihf libudev-dev
     
     - name: Cache dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cargo/registry
@@ -96,21 +101,21 @@ jobs:
       run: cargo build --bin panasonic-rpi --target armv7-unknown-linux-gnueabihf --features rpi,cli --release
     
     - name: Upload library artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: panasonic-ac-lib-armv7
         path: target/armv7-unknown-linux-gnueabihf/release/libpanasonic_ac.so
         if-no-files-found: error
     
     - name: Upload binary artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: panasonic-rpi-armv7
         path: target/armv7-unknown-linux-gnueabihf/release/panasonic-rpi
         if-no-files-found: error
     
     - name: Upload example
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: raspberry-pi-example-armv7
         path: target/armv7-unknown-linux-gnueabihf/release/examples/raspberry_pi
@@ -123,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         
       - name: Package artifacts
         run: |
