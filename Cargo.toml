@@ -1,0 +1,58 @@
+[package]
+name = "panasonic-ac"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "Rust library for controlling Panasonic heat pumps and air conditioners via IR"
+repository = "https://github.com/yourusername/panasonic-ac"
+license = "MIT"
+keywords = ["ir", "hvac", "panasonic", "ac", "heatpump"]
+categories = ["hardware-support", "embedded", "api-bindings"]
+readme = "README.md"
+
+[dependencies]
+# Error handling
+thiserror = "1.0"
+
+# Bit manipulation
+bitvec = "1.0"
+
+# Hardware support
+rppal = { version = "0.14", optional = true }
+embedded-hal = { version = "0.2", optional = true }
+
+# Logging
+log = "0.4"
+
+[dev-dependencies]
+env_logger = "0.10"
+clap = { version = "4.0", features = ["derive"] }
+
+[features]
+default = ["mock"]
+mock = []     # Mock hardware for testing
+rpi = ["rppal", "embedded-hal"]  # Raspberry Pi hardware support
+builder = []  # Builder pattern support
+diff = []     # State diff functionality
+
+[[example]]
+name = "ac_control"
+path = "examples/ac_control.rs"
+
+[[example]]
+name = "decode_ir"
+path = "examples/decode_ir.rs"
+
+[[example]]
+name = "smart_controller"
+path = "examples/smart_controller.rs"
+
+# Hardware example
+[[example]]
+name = "raspberry_pi"
+path = "examples/raspberry_pi.rs"
+required-features = ["rpi"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
