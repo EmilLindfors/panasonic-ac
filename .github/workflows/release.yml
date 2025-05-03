@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Run when tag matches v*, e.g. v1.0.0, v20.15.10-rc1
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Build for standard architectures
+  build_lib:
+    name: Build Library
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: ${{ runner.os }}-cargo-
+    
+    - name: Build library (Default)
+      run: cargo build --release
+    
+    - name: Build library with RPi support
+      run: cargo build --features rpi --release
+    
+    - name: Build CLI binary
+      run: cargo build --bin panasonic-rpi --features rpi,cli --release
+    
+    - name: Upload library artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: panasonic-ac-lib-x86_64
+        path: target/release/libpanasonic_ac.so
+        if-no-files-found: error
+    
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: panasonic-rpi-x86_64
+        path: target/release/panasonic-rpi
+        if-no-files-found: error
+
+  # Build for Raspberry Pi (ARMv7)
+  build_armv7:
+    name: Build for Raspberry Pi (ARMv7)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: armv7-unknown-linux-gnueabihf
+        profile: minimal
+        override: true
+    
+    - name: Install ARM toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-arm-linux-gnueabihf
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: armv7-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: armv7-cargo-
+    
+    - name: Build library for Raspberry Pi
+      run: cargo build --target armv7-unknown-linux-gnueabihf --features rpi --release
+    
+    - name: Build Raspberry Pi example
+      run: cargo build --example raspberry_pi --target armv7-unknown-linux-gnueabihf --features rpi --release
+    
+    - name: Build CLI binary for Raspberry Pi
+      run: cargo build --bin panasonic-rpi --target armv7-unknown-linux-gnueabihf --features rpi,cli --release
+    
+    - name: Upload library artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: panasonic-ac-lib-armv7
+        path: target/armv7-unknown-linux-gnueabihf/release/libpanasonic_ac.so
+        if-no-files-found: error
+    
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: panasonic-rpi-armv7
+        path: target/armv7-unknown-linux-gnueabihf/release/panasonic-rpi
+        if-no-files-found: error
+    
+    - name: Upload example
+      uses: actions/upload-artifact@v3
+      with:
+        name: raspberry-pi-example-armv7
+        path: target/armv7-unknown-linux-gnueabihf/release/examples/raspberry_pi
+        if-no-files-found: error
+
+  # Create GitHub Release with all artifacts
+  create_release:
+    name: Create Release
+    needs: [build_lib, build_armv7]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        
+      - name: Package artifacts
+        run: |
+          mkdir -p release
+          tar -czvf release/panasonic-ac-lib-x86_64.tar.gz panasonic-ac-lib-x86_64/
+          tar -czvf release/panasonic-rpi-x86_64.tar.gz panasonic-rpi-x86_64/
+          tar -czvf release/panasonic-ac-lib-armv7.tar.gz panasonic-ac-lib-armv7/
+          tar -czvf release/panasonic-rpi-armv7.tar.gz panasonic-rpi-armv7/
+          tar -czvf release/raspberry-pi-example-armv7.tar.gz raspberry-pi-example-armv7/
+      
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Panasonic AC v${{ steps.version.outputs.VERSION }}
+          files: |
+            release/panasonic-ac-lib-x86_64.tar.gz
+            release/panasonic-rpi-x86_64.tar.gz
+            release/panasonic-ac-lib-armv7.tar.gz
+            release/panasonic-rpi-armv7.tar.gz
+            release/raspberry-pi-example-armv7.tar.gz
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          token: ${{ secrets.GITHUB_TOKEN }}

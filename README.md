@@ -128,6 +128,65 @@ fn main() -> Result<()> {
 }
 ```
 
+### Using the Improved RpiHardware API
+
+The library provides a more convenient `RpiHardware` struct for easier initialization and management:
+
+```rust
+use panasonic_ac::prelude::*;
+use panasonic_ac::hardware::rpi::RpiHardware;
+
+fn main() -> Result<()> {
+    // Initialize hardware with transmitter on GPIO 17 and receiver on GPIO 27
+    let hardware = RpiHardware::new_with_receiver(17, 27)?;
+    
+    // Create AC with hardware sender
+    let sender = hardware.create_sender()?;
+    let mut ac = PanasonicAc::new(move |data, freq, repeat| sender(data, freq, repeat));
+    
+    // Control your AC
+    ac.set_model(PanasonicAcModel::Dke)?;
+    ac.set_power(true)?;
+    ac.set_mode(AcMode::Cool)?;
+    ac.set_temp(23)?;
+    ac.send()?;
+    
+    // Receive IR signals
+    let mut receiver = hardware.create_receiver()?;
+    let timings = receiver.receive(5000)?; // 5 second timeout
+    println!("Received signal with {} timing points", timings.len());
+    
+    Ok(())
+}
+```
+
+### Command Line Interface
+
+The library also includes a standalone command-line application for controlling Panasonic AC units with a Raspberry Pi:
+
+```bash
+# Build the CLI application
+cargo build --bin panasonic-rpi --features rpi,cli --release
+
+# Show help
+./target/release/panasonic-rpi --help
+
+# Turn on AC in cooling mode
+./target/release/panasonic-rpi send --power true --mode cool --temp 23 --fan auto
+
+# Set to heating mode at 24°C with quiet operation
+./target/release/panasonic-rpi send --mode heat --temp 24 --quiet true
+
+# Receive and decode an IR signal
+./target/release/panasonic-rpi receive
+
+# Save current settings as a preset
+./target/release/panasonic-rpi save-preset --name cooling
+
+# Load a saved preset
+./target/release/panasonic-rpi load-preset --name cooling
+```
+
 ### Hardware Setup
 
 For Raspberry Pi, connect your hardware as follows:

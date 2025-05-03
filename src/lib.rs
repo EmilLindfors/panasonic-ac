@@ -7,7 +7,7 @@
 pub mod constants;
 mod device;
 pub mod encoder;
-mod error;
+pub mod error;
 #[cfg(feature = "rpi")]
 pub mod hardware;
 #[cfg(feature = "mock")]

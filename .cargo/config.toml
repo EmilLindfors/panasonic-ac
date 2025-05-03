@@ -1,0 +1,12 @@
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+
+[build]
+# Optional: Set the default target
+# target = "armv7-unknown-linux-gnueabihf"
+
+[profile.release]
+lto = true        # Enable Link Time Optimization
+codegen-units = 1 # Maximum optimization
+opt-level = 3     # Maximum optimization
+strip = true      # Strip symbols from binary

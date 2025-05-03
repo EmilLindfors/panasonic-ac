@@ -1,10 +1,10 @@
 [package]
 name = "panasonic-ac"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Panasonic AC Contributors"]
 description = "Rust library for controlling Panasonic heat pumps and air conditioners via IR"
-repository = "https://github.com/yourusername/panasonic-ac"
+repository = "https://github.com/EmilLindfors/panasonic-ac-rs"
 license = "MIT"
 keywords = ["ir", "hvac", "panasonic", "ac", "heatpump"]
 categories = ["hardware-support", "embedded", "api-bindings"]
@@ -20,6 +20,7 @@ bitvec = "1.0"
 # Hardware support
 rppal = { version = "0.14", optional = true }
 embedded-hal = { version = "0.2", optional = true }
+lazy_static = "1.4"
 
 # Logging
 log = "0.4"
@@ -28,12 +29,27 @@ log = "0.4"
 env_logger = "0.10"
 clap = { version = "4.0", features = ["derive"] }
 
+[dependencies.clap]
+version = "4.4"
+features = ["derive"]
+optional = true
+
+[dependencies.env_logger]
+version = "0.10"
+optional = true
+
+[dependencies.chrono]
+version = "0.4"
+optional = true
+
 [features]
 default = ["mock"]
 mock = []     # Mock hardware for testing
 rpi = ["rppal", "embedded-hal"]  # Raspberry Pi hardware support
 builder = []  # Builder pattern support
 diff = []     # State diff functionality
+cli = ["clap", "env_logger", "chrono"]  # CLI binary dependencies
+test-rpi = ["rpi", "mock"]  # Feature for running Raspberry Pi tests
 
 [[example]]
 name = "ac_control"
@@ -56,3 +72,8 @@ required-features = ["rpi"]
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
+
+[[bin]]
+name = "panasonic-rpi"
+path = "src/bin/panasonic_rpi.rs"
+required-features = ["rpi", "cli"]
