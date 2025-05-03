@@ -2,6 +2,8 @@
 
 A modern Rust library for controlling Panasonic heat pumps and air conditioners via IR communication. Designed with safety, flexibility, and hardware support in mind.
 
+📄 **[Raspberry Pi Installation & Usage Guide](RASPBERRY_PI_GUIDE.md)** - Detailed instructions for Raspberry Pi users
+
 ## Features
 
 - 📱 Control Panasonic AC units using infrared signals
@@ -22,10 +24,10 @@ Add the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-panasonic-ac = "0.1.0"
+panasonic-ac = "0.2.1"
 
 # If you need Raspberry Pi hardware support:
-panasonic-ac = { version = "0.1.0", features = ["rpi"] }
+panasonic-ac = { version = "0.2.1", features = ["rpi"] }
 ```
 
 ## Basic Usage
@@ -187,6 +189,8 @@ cargo build --bin panasonic-rpi --features rpi,cli --release
 ./target/release/panasonic-rpi load-preset --name cooling
 ```
 
+For a complete guide on setting up and using the CLI on a Raspberry Pi, including downloading pre-built binaries, see the [Raspberry Pi Guide](RASPBERRY_PI_GUIDE.md).
+
 ### Hardware Setup
 
 For Raspberry Pi, connect your hardware as follows:
@@ -288,10 +292,13 @@ The library is built with a modular architecture:
 - ✅ IR signal encoding and decoding
 
 ### TODO List
-- 🔄 Improve Raspberry Pi hardware support with better GPIO handling
-- 🔄 Add better hardware abstraction layer for diverse platforms
-- 🔄 Implement comprehensive error handling for hardware failures 
+- ✅ Improve Raspberry Pi hardware support with better GPIO handling
+- ✅ Add better hardware abstraction layer for diverse platforms
+- ✅ Implement comprehensive error handling for hardware failures
+- ✅ Create CLI tool for Raspberry Pi
+- ✅ Create comprehensive documentation for Raspberry Pi users
 - 🔄 Add support for additional Panasonic AC models
+- 🔄 Add automated testing for hardware integration
 - 🔄 Create more examples and documentation
 
 ## Contributing
