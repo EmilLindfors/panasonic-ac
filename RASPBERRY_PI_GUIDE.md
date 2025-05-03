@@ -45,7 +45,25 @@ sudo apt install -y libudev-dev
 
 ## Downloading Pre-built Binaries
 
-The easiest way to get started is to download the pre-built binaries from the GitHub releases page.
+### Option 1: Automatic Installation Script (Recommended)
+
+The easiest way to install is using the automatic installation script:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/EmilLindfors/panasonic-ac/master/install_panasonic_ac.sh | bash
+```
+
+This script will:
+- Install required dependencies
+- Download the latest release
+- Extract the binary
+- Make it executable
+- Install it to `/usr/local/bin`
+- Add your user to the `gpio` group for hardware access
+
+### Option 2: Manual Installation
+
+If you prefer to install manually:
 
 1. Visit the [Releases page](https://github.com/EmilLindfors/panasonic-ac/releases) of the repository
 2. Download the appropriate binaries:
