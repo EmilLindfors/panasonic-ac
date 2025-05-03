@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2] - 2025-05-04
+
+### Added
+- Added AArch64 (64-bit ARM) support for Raspberry Pi
+- Improved installation script to detect CPU architecture
+- Added automatic binary selection based on architecture
+
 ## [0.2.1] - 2025-05-04
 
 ### Fixed
