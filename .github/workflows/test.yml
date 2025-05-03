@@ -37,13 +37,16 @@ jobs:
       run: cargo test --verbose
     
     - name: Run mock hardware tests
-      run: cargo test --tests mock_hardware_tests --verbose
+      run: cargo test --test mock_hardware_tests --verbose
     
     - name: Run Raspberry Pi tests
-      run: cargo test --tests rpi_hardware_tests rpi_integration_tests --features test-rpi --verbose
+      run: cargo test --test rpi_hardware_tests --test rpi_integration_test --features test-rpi --verbose
     
     - name: Run CLI tests
-      run: cargo test --tests cli_tests --features "test-rpi cli" --verbose
+      run: cargo test --test cli_tests --features "cli rpi" --verbose
+      
+    - name: Run Clippy with all features
+      run: cargo clippy --all-features -- -D warnings
     
   coverage:
     name: Code Coverage
