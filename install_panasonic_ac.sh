@@ -44,13 +44,33 @@ wget -q "$BINARY_URL" -O panasonic-rpi-armv7.tar.gz
 echo "Extracting binary..."
 tar -xzf panasonic-rpi-armv7.tar.gz
 
+# Find the binary - handle different archive structures
+echo "Locating binary..."
+if [ -f panasonic-rpi-armv7/panasonic-rpi ]; then
+    BINARY_PATH="panasonic-rpi-armv7/panasonic-rpi"
+elif [ -f panasonic-rpi ]; then
+    BINARY_PATH="panasonic-rpi"
+else
+    # Search for the binary
+    BINARY_PATH=$(find . -type f -name "panasonic-rpi" | head -n 1)
+    
+    if [ -z "$BINARY_PATH" ]; then
+        echo "ERROR: Could not find the binary in the extracted files."
+        echo "Contents of the extracted archive:"
+        find . -type f | sort
+        exit 1
+    fi
+fi
+
+echo "Found binary at: $BINARY_PATH"
+
 # Make binary executable
 echo "Making binary executable..."
-chmod +x panasonic-rpi-armv7/panasonic-rpi
+chmod +x "$BINARY_PATH"
 
 # Move to /usr/local/bin
 echo "Installing binary to /usr/local/bin..."
-sudo mv panasonic-rpi-armv7/panasonic-rpi /usr/local/bin/
+sudo mv "$BINARY_PATH" /usr/local/bin/
 
 # Clean up
 cd - > /dev/null
@@ -59,8 +79,51 @@ rm -rf "$TMP_DIR"
 echo "Testing installation..."
 if command -v panasonic-rpi >/dev/null 2>&1; then
     echo "Panasonic AC controller installed successfully!"
-    echo "Usage example: panasonic-rpi send --power true --mode cool --temp 23"
-    echo "For more information, run: panasonic-rpi --help"
+    
+    # Test if binary runs
+    echo "Testing binary execution..."
+    RESULT=$(panasonic-rpi --help 2>&1 || echo "FAILED")
+    
+    if [[ "$RESULT" == *"FAILED"* ]]; then
+        echo "WARNING: The binary was installed but it may not be compatible with your system."
+        echo "Error running binary: $RESULT"
+        
+        # Check architecture
+        echo "Your system architecture: $(uname -m)"
+        echo "This binary is built for armv7. If your Raspberry Pi is using a different architecture,"
+        echo "you may need to build from source instead."
+        
+        echo ""
+        echo "Would you like to build from source instead? (y/N)"
+        read response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            echo "Installing Rust and building from source..."
+            sudo apt update
+            sudo apt install -y build-essential git curl
+            
+            # Install Rust
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+            source "$HOME/.cargo/env"
+            
+            # Clone repository
+            git clone https://github.com/EmilLindfors/panasonic-ac.git
+            cd panasonic-ac
+            
+            # Build binary
+            echo "Building panasonic-rpi (this may take several minutes)..."
+            cargo build --bin panasonic-rpi --features rpi,cli --release
+            
+            # Install binary
+            echo "Installing binary to /usr/local/bin..."
+            sudo cp target/release/panasonic-rpi /usr/local/bin/
+            
+            echo "Build from source completed!"
+        fi
+    else
+        echo "Binary executes successfully!"
+        echo "Usage example: panasonic-rpi send --power true --mode cool --temp 23"
+        echo "For more information, run: panasonic-rpi --help"
+    fi
 else
     echo "ERROR: Installation failed. The binary is not in the PATH."
     exit 1
