@@ -237,6 +237,7 @@ fn parse_model(model_str: &str) -> Result<PanasonicAcModel> {
 
 /// Send command to AC unit
 #[cfg(feature = "rpi")]
+#[allow(clippy::too_many_arguments)]
 fn send_command(
     ac: &mut PanasonicAc,
     power: Option<bool>,
@@ -369,7 +370,7 @@ fn save_preset(ac: &PanasonicAc, name: &str) -> Result<()> {
     let mut file = std::fs::File::create(&preset_path)?;
     
     // Write model first
-    writeln!(file, "{}", ac.get_model().to_string())?;
+    writeln!(file, "{}", ac.get_model())?;
     
     // Write raw state bytes
     for byte in raw_state {

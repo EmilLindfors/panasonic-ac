@@ -44,6 +44,9 @@ pub trait Hardware {
     fn create_receiver(&self) -> Result<Box<dyn IrReceiver>>;
     
     /// Create a sender function closure
+    ///
+    /// Returns a boxed function that can be used to send IR signals
+    #[allow(clippy::type_complexity)]
     fn create_sender(&self) -> Result<Box<dyn Fn(&[u8], u32, u16) -> Result<()> + 'static>>;
 }
 
@@ -53,7 +56,7 @@ pub fn create_default_transmitter() -> Result<Box<dyn IrTransmitter>> {
     {
         // Default GPIO pin for IR LED on Raspberry Pi
         let default_pin = 17;
-        return Ok(Box::new(rpi::RpiTransmitter::new(default_pin)?));
+        Ok(Box::new(rpi::RpiTransmitter::new(default_pin)?))
     }
 
     #[cfg(not(feature = "rpi"))]
@@ -71,7 +74,7 @@ pub fn create_default_receiver() -> Result<Box<dyn IrReceiver>> {
     {
         // Default GPIO pin for IR receiver on Raspberry Pi
         let default_pin = 27;
-        return Ok(Box::new(rpi::RpiReceiver::new(default_pin)?));
+        Ok(Box::new(rpi::RpiReceiver::new(default_pin)?))
     }
 
     #[cfg(not(feature = "rpi"))]
@@ -90,7 +93,7 @@ pub fn create_default_hardware() -> Result<impl Hardware> {
         // Default GPIO pins for Raspberry Pi
         let tx_pin = 17;
         let rx_pin = 27;
-        return Ok(rpi::RpiHardware::new_with_receiver(tx_pin, rx_pin)?);
+        rpi::RpiHardware::new_with_receiver(tx_pin, rx_pin)
     }
 
     #[cfg(not(feature = "rpi"))]
