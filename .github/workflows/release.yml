@@ -171,7 +171,8 @@ jobs:
   # Build for Raspberry Pi (AArch64 - 64-bit)
   build_aarch64:
     name: Build for Raspberry Pi (AArch64)
-    runs-on: ubuntu-latest
+    # Use an older Ubuntu for compatibility with older glibc versions
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v4
     
@@ -204,7 +205,7 @@ jobs:
         cat > .cargo/config.toml << EOF
         [target.aarch64-unknown-linux-gnu]
         linker = "aarch64-linux-gnu-gcc"
-        rustflags = ["-C", "link-arg=-lgcc"]
+        rustflags = ["-C", "link-arg=-lgcc", "-C", "target-feature=+crt-static"]
         EOF
         
     - name: Build library for Raspberry Pi (AArch64)
@@ -232,7 +233,8 @@ jobs:
         export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
         export CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
         export CARGO_NET_GIT_FETCH_WITH_CLI=true
-        cargo build --verbose --bin panasonic-rpi --target aarch64-unknown-linux-gnu --features rpi,cli --release
+        # Add -C target-feature=+crt-static for static linking
+        RUSTFLAGS="-C target-feature=+crt-static" cargo build --verbose --bin panasonic-rpi --target aarch64-unknown-linux-gnu --features rpi,cli --release
       
     - name: List ARM64 target directory contents
       run: |
