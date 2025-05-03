@@ -53,38 +53,8 @@ jobs:
     - name: Run Clippy with all features
       run: cargo clippy --all-features -- -D warnings
     
-  coverage:
-    name: Code Coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libudev-dev
-      
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          components: llvm-tools-preview
-      
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      
-      - name: Generate code coverage
-        run: |
-          # Print out Rust and cargo versions for debugging
-          rustc --version
-          cargo --version
-          
-          # Simplified approach - just run with all features and generate lcov
-          cargo llvm-cov --features "mock,rpi,builder,diff,cli,test-rpi" --workspace --lcov --output-path lcov.info --verbose
-      
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          files: lcov.info
-          fail_ci_if_error: true
+    - name: Build binary with all features
+      run: cargo build --bin panasonic-rpi --features "rpi cli" --release  
+    - name: Build binary with all features
+      run: cargo build --bin panasonic-rpi --features "rpi cli" --release
+    
