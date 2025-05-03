@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1] - 2025-05-04
+
+### Fixed
+- Fixed Clippy warnings and compiler issues for CI
+- Fixed incorrect enum references in CLI tests
+- Updated CI workflow to properly build and test with features
+- Improved system dependencies installation in CI
+- Fixed binary build on CI
+
 ## [0.2.0] - 2025-05-03
 
 ### Added
